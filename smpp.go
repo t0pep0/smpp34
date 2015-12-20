@@ -2,12 +2,15 @@ package smpp34
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/tls"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"net"
 	"strconv"
 	"sync"
+	"unicode/utf16"
 )
 
 var Debug bool
@@ -158,7 +161,24 @@ func (s *Smpp) SubmitSm(source_addr, destination_addr, short_message string, par
 
 	p.SetField(SOURCE_ADDR, source_addr)
 	p.SetField(DESTINATION_ADDR, destination_addr)
-	p.SetField(SHORT_MESSAGE, short_message)
+	isEnglish := true
+	for _, b := range []byte(short_message) {
+		isEnglish = b <= 0x7e
+		if !isEnglish {
+			break
+		}
+	}
+	if isEnglish {
+		p.SetField(SHORT_MESSAGE, short_message)
+	} else {
+		msg := utf16.Encode([]rune(short_message))
+		buf := new(bytes.Buffer)
+		binary.Write(buf, binary.BigEndian, msg)
+		fMsg := string(buf.Bytes())
+		buf.Reset()
+		p.SetField(SHORT_MESSAGE, fMsg)
+		p.SetField(DATA_CODING, 8)
+	}
 
 	for f, v := range *params {
 		err := p.SetField(f, v)

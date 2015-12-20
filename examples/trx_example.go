@@ -2,19 +2,19 @@ package main
 
 import (
 	"fmt"
-	smpp "github.com/CodeMonkeyKevin/smpp34"
+	smpp "github.com/t0pep0/smpp34"
 )
 
 func main() {
 	// connect and bind
 	trx, err := smpp.NewTransceiver(
-		"localhost",
-		9000,
+		"smpp",
+		2775,
 		5,
 		smpp.Params{
 			"system_type": "CMT",
-			"system_id":   "hugo",
-			"password":    "ggoohu",
+			"system_id":   "t0pep0",
+			"password":    "pass",
 		},
 	)
 	if err != nil {
@@ -23,8 +23,7 @@ func main() {
 	}
 
 	// Send SubmitSm
-	seq, err := trx.SubmitSm("test", "test2", "msg", &smpp.Params{})
-
+	seq, err := trx.SubmitSm("test", "test", "Hello! Привет!", &smpp.Params{smpp.REGISTERED_DELIVERY: 1})
 	// Pdu gen errors
 	if err != nil {
 		fmt.Println("SubmitSm err:", err)
@@ -44,7 +43,7 @@ func main() {
 		switch pdu.GetHeader().Id {
 		case smpp.SUBMIT_SM_RESP:
 			// message_id should match this with seq message
-			fmt.Println("MSG ID:", pdu.GetField("message_id").Value())
+			fmt.Println("MSG ID:", string(pdu.GetField("message_id").Value().([]uint8)))
 		case smpp.DELIVER_SM:
 			// received Deliver Sm
 
