@@ -161,6 +161,9 @@ func (s *Smpp) SubmitSm(source_addr, destination_addr, short_message string, par
 
 	p.SetField(SOURCE_ADDR, source_addr)
 	p.SetField(DESTINATION_ADDR, destination_addr)
+	if len([]byte(short_message)) > 160 {
+		return nil, fmt.Errorf("Text to long")
+	}
 	isEnglish := true
 	for _, b := range []byte(short_message) {
 		isEnglish = b <= 0x7e
@@ -169,19 +172,18 @@ func (s *Smpp) SubmitSm(source_addr, destination_addr, short_message string, par
 		}
 	}
 	if isEnglish {
-		if len(short_message) > 140 {
-			return nil, fmt.Errorf("Text to long")
-		}
 		p.SetField(SHORT_MESSAGE, short_message)
 	} else {
+		var head []byte
+		if []byte(short_message)[0] == 0x05 {
+			head = []byte(short_message)[0:6]
+			short_message = string([]byte(short_message)[7:])
+		}
 		msg := utf16.Encode([]rune(short_message))
 		buf := new(bytes.Buffer)
 		binary.Write(buf, binary.BigEndian, msg)
-		fMsg := string(buf.Bytes())
+		fMsg := string(append(head, buf.Bytes()...))
 		buf.Reset()
-		if len(fMsg) > 140 {
-			return nil, fmt.Errorf("Text to long")
-		}
 		p.SetField(SHORT_MESSAGE, fMsg)
 		p.SetField(DATA_CODING, 8)
 	}

@@ -126,4 +126,7 @@ const (
 	FINAL_DATE              = "final_date"
 	MESSAGE_STATE           = "message_state"
 	ERROR_CODE              = "error_code"
+	SAR_TOTAL_SEGMENTS      = "sar_total_segments"
+	SAR_SEGMENT_SEQNUM      = "sar_segment_seqnum"
+	SAR_MSG_REF_NUM         = "sar_msg_ref_num"
 )

@@ -26,6 +26,12 @@ var (
 		SM_LENGTH,
 		SHORT_MESSAGE,
 	}
+
+	optSSMFields = []string{
+		SAR_MSG_REF_NUM,
+		SAR_SEGMENT_SEQNUM,
+		SAR_TOTAL_SEGMENTS,
+	}
 )
 
 type SubmitSm struct {
@@ -58,6 +64,10 @@ func (s *SubmitSm) Fields() map[string]Field {
 
 func (s *SubmitSm) MandatoryFieldsList() []string {
 	return reqSSMFields
+}
+
+func (s *SubmitSm) OptionalFieldsList() []string {
+	return optSSMFields
 }
 
 func (s *SubmitSm) Ok() bool {
@@ -98,6 +108,9 @@ func (s *SubmitSm) SetTLVField(t, l int, v []byte) error {
 
 func (s *SubmitSm) validate_field(f string, v interface{}) bool {
 	if included_check(s.MandatoryFieldsList(), f) && validate_pdu_field(f, v) {
+		return true
+	}
+	if included_check(s.OptionalFieldsList(), f) && validate_pdu_field(f, v) {
 		return true
 	}
 	return false
